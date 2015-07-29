@@ -1,5 +1,16 @@
 #+TITLE: Authenticated Data Structures, Generically
+#+AUTHOR: Kyle Isom
+#+DATE: 2015-07-29
 
+* The paper
+
+#+BEGIN_QUOTE
+Authenticated Data Structures, Generically
+Andrew Miller, Michael Hicks, Jonathan Katz, and Elaine Shi
+2014
+#+END_QUOTE
+
+  + [[http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.394.2937][CiteSeerX page]]
 
 * What is an ADS?
 
@@ -133,3 +144,4 @@ let rec fetch (idx:bit list) (t:•tree) : string =
 
   + AuthTypes.hs: sketching out some of the ideas in the paper
   + Merkle.hs: a low-budget Merkle tree implementaiton
+
