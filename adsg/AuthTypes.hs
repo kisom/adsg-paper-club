@@ -21,7 +21,7 @@ module AuthTypes (
 ) where
 
 import qualified Crypto.Hash.SHA256 as SHA256
-import Data.ByteString.Char8 (ByteString, append, pack)
+import Data.ByteString.Char8 (ByteString, append, concat, pack)
 
 -- A proof contains either a value or a bytestring.
 data Proof a = ProofValue a | ProofHash ByteString
@@ -90,3 +90,41 @@ unauth ((ProofValue v) : p) (Verifier h) =
     ([], Just x) -> (p, Just x)
     _            -> (p, Nothing)
 
+
+-- Let's try to build a hash list.
+
+data HashBlock a = Block ByteString a deriving (Show, Read)
+
+getHash :: HashBlock a -> ByteString
+getHash (Block h _) = h
+
+getValue :: HashBlock a -> a
+getValue (Block _ v) = v
+
+hashBlocks :: [HashBlock a] -> ByteString
+hashBlocks blocks = SHA256.hash $ Data.ByteString.Char8.concat hs
+  where hs = map getHash blocks
+
+data HashList a = HashList {rootHash :: ByteString
+                           ,blockList :: [HashBlock a]}
+                  deriving (Show, Read)
+
+newHashList :: (Show a) => a -> HashList a
+newHashList v = HashList root block
+  where block = [(Block (digestGeneric v) v)]
+        root  = hashBlocks block
+
+pushBlock :: (Show a) => HashList a -> a -> HashList a
+pushBlock hlst@(HashList _ blocks) v =
+  HashList (hashBlocks blocks') blocks'
+  where blocks' = blocks ++ [(Block (digestGeneric v) v)]
+
+verifyBlock :: (Show a) => HashBlock a -> Bool
+verifyBlock (Block h v) = h == digestGeneric v
+
+verifyHashList :: (Show a) => HashList a -> Bool
+verifyHashList (HashList root blocks) =
+  root == hashBlocks blocks && (all id $ map verifyBlock blocks)
+
+getBlock :: HashList a -> Int -> a
+getBlock (HashList _ blocks) idx = getValue $ blocks !! idx
